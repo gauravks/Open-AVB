@@ -1,36 +1,41 @@
 
 .. image:: avnu_logo.png
 
-Open AVB
+|
+
+.. image:: https://travis-ci.org/AVnu/OpenAvnu.svg?branch=open-avb-next
+   :target: https://travis-ci.org/AVnu/OpenAvnu
+
+OpenAvnu
 ========
 
-The Open AVB project is sponsored by the AVnu Alliance.
+The OpenAvnu project is sponsored by the Avnu Alliance.
 
-The intent is to provide components for building AVB systems. The repository
+The intent is to provide components for building AVB/TSN systems. The repository
 contains primarily network building block components - drivers, libraries,
-\example applications  and daemon source code - required to build an AVB system.
+\example applications  and daemon source code - required to build an AVB/TSN system.
 It is planned to eventually include the various packet encapsulation types,
 protocol discovery daemons, libraries to convert media clocks to AVB clocks
 and vice versa), and drivers.
 
-This repository does not include all components required to build a full 
-production AVB system (e.g. a turnkey solution to stream stored or live audio 
-or video content). Some simple example applications are provided which 
-illustrate the flow - but a professional AVB system requires a full media stack 
-- including audio and video inputs and outputs, media processing elements, and 
-various graphical user interfaces. Various companies provide such integrated 
+This repository does not include all components required to build a full
+production AVB/TSN system (e.g. a turnkey solution to stream stored or live audio
+or video content). Some simple example applications are provided which
+illustrate the flow - but a professional Audio/Video system requires a full media stack
+- including audio and video inputs and outputs, media processing elements, and
+various graphical user interfaces. Various companies provide such integrated
 solutions.
 
-For more information about AVB, see also the AVnu Alliance webpage at
+For more information about AVB/TSN, see also the Avnu Alliance webpage at
 www.avnu.org.
 
 BACKGROUND
 ===========
 
-Intel created the Open AVB repository to encourage collaborative source code 
-development for AVB technology enabling. By publishing the source code, our 
-intent is to encourage standardization, stability and inter-operability between 
-multiple vendors. This repository - created by the Intel LAN Access Division - 
+Intel created the OpenAvnu repository to encourage collaborative source code
+development for AVB/TSN technology enabling. By publishing the source code, our
+intent is to encourage standardization, stability and inter-operability between
+multiple vendors. This repository - created by the Intel LAN Access Division -
 is open for contributions from other vendors. 
 
 LICENSING AND CONTRIBUTION GUIDELINES
@@ -49,16 +54,51 @@ patches with GPL content into existing “BSD” licensed components. Third
 party copyrights can be included provided they do not narrow the licensing 
 terms of an existing component.
 
-Prior to accepting a commit, Intel may perform scans using third-party tools 
-to identify suspected hits of GPL code. Intel may also perform vulnerability 
-scans of patches in an attempt to find various coding errors such as memory 
-leaks, buffer overflows and usage of uninitialized variables. The submitter 
-will be asked to correct any detected issues prior to a commit. Owners
-of submitted third-party content are free to apply changes without supervision
-by Intel.
-
-The Open AVB project has a development mailing list. To subscribe, visit
+The OpenAvnu project has a development mailing list. To subscribe, visit
 https://lists.sourceforge.net/lists/listinfo/open-avb-devel to sign up.
+
+WEBSITE
+=======
+
+A github based website for OpenAvnu can be found here.
+
++ http://avnu.github.io/OpenAvnu
+
+GIT SUBMODULES
+==============
+
+After checking out the OpenAvnu git repository submodules should be
+configured by going::
+
+    git submodule init
+    git submodule update
+
+CMAKE
+=====
+
+cmake is a cross-platform build system generator. cmake build files are
+currently available to build mrpd in Windows and linux and CppUTest unit
+tests for mrpd. The recommended usage for cmake is to create an out-of-tree
+directory for cmake output of generated makefiles or MSVC project files.
+
+Starting from the OpenAvnu dir, one would go::
+
+    mkdir tmp
+    cd tmp
+    cmake .. -G "Unix Makefiles"
+    make
+
+to build in OpenAvnu/tmp
+
+Apple Vendor PTP Profile
+========================
+
+Support for the Apple Vendor PTP Profile can be found on the
+feature-aptp-experimental branch of the OpenAvnu repository.
+
+These changes allow interaction with Apple proprietary PTP clocks. This 
+implementation has been tested with the Apple AirPlay SDK on a Raspberry Pi 3 
+running within a group of devices playing the same music stream.
 
 RELATED OPEN SOURCE PROJECTS
 ============================
@@ -67,7 +107,7 @@ AVDECC
 ------
 Jeff Koftinoff maintains a repository of AVDECC example open 
 source code. AVDECC is a management layer, similar to SNMP MIB formats, 
-which enables remote devices to detect, enumerate and configure AVB-related 
+which enables remote devices to detect, enumerate and configure AVB/TSN-related
 devices based on their standardized management properties.
 
 + https://github.com/jdkoftinoff/jdksavdecc-c
@@ -78,7 +118,6 @@ AudioScience has created a 1722.1 C++ controller library which builds on jdkadve
 
 XMOS
 ----
-XMOS is a semiconductor company providing a reference design for AVB 
+XMOS is a semiconductor company providing a reference design for AVB/TSN
 endpoints in pro audio and automotive. XMOS endpoint source code is open source 
 and available on Github - https://github.com/xcore/sw_avb
-

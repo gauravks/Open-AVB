@@ -70,6 +70,7 @@ int daemonize;
 int mmrp_enable;
 int mvrp_enable;
 int msrp_enable;
+int msrp_pruning;
 int logging_enable;
 int mrpd_port;
 
@@ -279,6 +280,9 @@ int process_ctl_msg(char *buf, int buflen, struct sockaddr_in *client)
 	 * S+? - JOIN_MT a Stream
 	 * S++ - JOIN_IN a Stream
 	 * S-- - LV a Stream
+	 * I+S   Add a stream id to the interesting talker stream id list
+	 * I-S   Remove a stream id from the interesting talker stream id list
+	 * I-A   Remove all stream ids from the interesting talker and listener stream id lists
 	 *
 	 * Outbound messages
 	 * ERC - error, unrecognized command
@@ -330,6 +334,7 @@ int process_ctl_msg(char *buf, int buflen, struct sockaddr_in *client)
 		return mvrp_recv_cmd(buf, buflen, client);
 		break;
 	case 'S':
+	case 'I':
 		return msrp_recv_cmd(buf, buflen, client);
 		break;
 	case 'B':
@@ -446,7 +451,7 @@ mrpd_init_protocol_socket(u_int16_t etype, int *sock,
 
 	memset(&if_request, 0, sizeof(if_request));
 
-	strncpy(if_request.ifr_name, interface, sizeof(if_request.ifr_name));
+	strncpy(if_request.ifr_name, interface, sizeof(if_request.ifr_name) - 1);
 
 	rc = ioctl(lsock, SIOCGIFHWADDR, &if_request);
 	if (rc < 0) {
@@ -459,7 +464,7 @@ mrpd_init_protocol_socket(u_int16_t etype, int *sock,
 
 	memset(&if_request, 0, sizeof(if_request));
 
-	strncpy(if_request.ifr_name, interface, sizeof(if_request.ifr_name));
+	strncpy(if_request.ifr_name, interface, sizeof(if_request.ifr_name)-1);
 
 	rc = ioctl(lsock, SIOCGIFINDEX, &if_request);
 	if (rc < 0) {
@@ -791,7 +796,6 @@ void usage(void)
 		"    -h  show this message\n"
 		"    -d  run daemon in the background\n"
 		"    -l  enable logging (ignored in daemon mode)\n"
-		"    -p  enable periodic timer\n"
 		"    -m  enable MMRP Registrar and Participant\n"
 		"    -v  enable MVRP Registrar and Participant\n"
 		"    -s  enable MSRP Registrar and Participant\n"
@@ -809,6 +813,7 @@ int main(int argc, char *argv[])
 	mmrp_enable = 0;
 	mvrp_enable = 0;
 	msrp_enable = 0;
+	msrp_pruning = 0;
 	logging_enable = 0;
 	mrpd_port = MRPD_PORT_DEFAULT;
 	interface = NULL;
@@ -838,6 +843,9 @@ int main(int argc, char *argv[])
 			break;
 		case 's':
 			msrp_enable = 1;
+			break;
+		case 'p':
+			msrp_pruning = 1;
 			break;
 		case 'l':
 			logging_enable = 1;
@@ -895,7 +903,7 @@ int main(int argc, char *argv[])
 		goto out;
 	}
 
-	rc = msrp_init(msrp_enable);
+	rc = msrp_init(msrp_enable, MSRP_INTERESTING_STREAM_ID_COUNT, msrp_pruning);
 	if (rc) {
 		printf("msrp_enable failed\n");
 		goto out;

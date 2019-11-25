@@ -44,7 +44,7 @@
 /* state machine controls */
 int p2pmac;
 
-#if LOG_MVRP || LOG_MSRP || LOG_MMRP || LOG_MRP
+#if LOG_MVRP || LOG_MSRP || LOG_MMRP || LOG_MRP || MRP_CPPUTEST
 
 /* can use static string since module is single threaded */
 static char state_status_string[64];
@@ -247,6 +247,20 @@ static int client_lookup(client_t * list, struct sockaddr_in *newclient)
 	return 0;
 }
 
+int mrp_client_count(client_t *list)
+{
+	client_t *client_item;
+	int count = 0;
+
+	client_item = list;
+
+	while (NULL != client_item) {
+		client_item = client_item->next;
+		count++;
+	}
+	return count;
+}
+
 int mrp_client_add(client_t ** list, struct sockaddr_in *newclient)
 {
 	client_t *client_item;
@@ -320,6 +334,21 @@ int mrp_client_delete(client_t ** list, struct sockaddr_in *newclient)
 	/* not found ... no error */
 	return 0;
 }
+
+int mrp_client_remove_all(client_t ** list)
+{
+	client_t *client_item = *list;
+	client_t *client_next;
+
+	while (NULL != client_item) {
+		client_next = client_item->next;
+		free(client_item);
+		client_item = client_next;
+	}
+	*list = NULL;
+	return 0;
+}
+
 
 int mrp_jointimer_start(struct mrp_database *mrp_db)
 {
@@ -651,7 +680,6 @@ int mrp_applicant_fsm(struct mrp_database *mrp_db,
 			optional = 1;
 			tx = 1;
 			sndmsg = MRP_SND_IN;
-			mrp_state = MRP_VO_STATE;
 			break;
 		default:
 			break;

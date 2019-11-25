@@ -31,9 +31,16 @@
 
 ******************************************************************************/
 
+#include "eui64set.h"
+
 #define MSRP_ETYPE	0x22EA
 #define MSRP_PROT_VER	0x00
 #define MSRP_SR_PVID_DEFAULT	2
+
+/* This is the number of streams IDs supported by the MSRP "I+S" interface */
+#ifndef MSRP_INTERESTING_STREAM_ID_COUNT
+#define MSRP_INTERESTING_STREAM_ID_COUNT 8
+#endif
 
 /*
  * PortMediaType = either AccessControlPort (the case for wired) or
@@ -134,8 +141,12 @@ typedef struct msrpdu_domain {
 #define MSRP_SR_CLASS_A_PRIO	3
 #define MSRP_SR_CLASS_B_PRIO	2
 
-#define MSRP_DIRECTION_TALKER	0
-#define MSRP_DIRECTION_LISTENER	1
+/*
+ * Differentiate between attribute declare and register
+ * (see section 10.2 IEEE802.1Q-2011)
+ */
+#define MSRP_OPERATION_REGISTER 0   /* from network */
+#define MSRP_OPERATION_DECLARE  1   /* from local client application */
 
 struct msrp_attribute {
 	struct msrp_attribute *prev;
@@ -146,7 +157,7 @@ struct msrp_attribute {
 		msrpdu_domain_t domain;
 	} attribute;
 	uint32_t substate;	/*for listener events */
-	uint32_t direction;	/*for listener events */
+	uint32_t operation;	/* DECLARE or REGISTER */
 	mrp_applicant_attribute_t applicant;
 	mrp_registrar_attribute_t registrar;
 };
@@ -155,12 +166,38 @@ struct msrp_database {
 	struct mrp_database mrp_db;
 	struct msrp_attribute *attrib_list;
 	int send_empty_LeaveAll_flag;
+	struct eui64set interesting_stream_ids;
+	int enable_pruning_of_uninteresting_ids;
 };
 
-int msrp_init(int msrp_enable);
+int msrp_init(int msrp_enable, int max_interesting_stream_ids, int enable_pruning);
+void msrp_reset(void);
 int msrp_event(int event, struct msrp_attribute *rattrib);
-int msrp_recv_cmd(char *buf, int buflen, struct sockaddr_in *client);
+int msrp_recv_cmd(const char *buf, int buflen, struct sockaddr_in *client);
 int msrp_send_notifications(struct msrp_attribute *attrib, int notify);
 int msrp_reclaim(void);
 void msrp_bye(struct sockaddr_in *client);
 int msrp_recv_msg(void);
+
+/**
+ * Count attributes by type in the MSRP database.
+ * This is helper function that is used in unit testing to monitor
+ * how the database changes as tests are executed.
+ *
+ * \param attrib_type The attribute type to count.
+ * \return The number of attributes of type attrib_type in the MSRP database.
+ */
+int msrp_count_type(uint32_t attrib_type);
+
+/**
+ * Return the number of interesting talker stream ids recorded in the
+ * database.
+ *
+ * \return Number of stream ids in the interesting stream id database.
+ */
+int msrp_interesting_id_count(void);
+
+#ifdef MRP_CPPUTEST
+struct msrp_attribute *msrp_lookup(struct msrp_attribute *rattrib);
+struct msrp_attribute *msrp_lookup_stream_declaration(uint32_t decl_type, uint8_t streamID[8]);
+#endif
